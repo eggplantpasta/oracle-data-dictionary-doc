@@ -1,4 +1,4 @@
 oracle-data-dictionary-doc
 ==========================
 
-Automatic schema documentation generation using the Oracle data dictionary tables.
+Automatic generation of schema documentation using the Oracle data dictionary tables.
