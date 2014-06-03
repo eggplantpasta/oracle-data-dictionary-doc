@@ -11,7 +11,7 @@
      <xsl:for-each select="/ROWSET/*">
        <tr>
          <xsl:for-each select="./*">
-           <td><xsl:value-of select="text()"/></td>
+           <td><xsl:value-of disable-output-escaping="yes" select="text()"/></td>
          </xsl:for-each>
       </tr>
      </xsl:for-each>

@@ -8,7 +8,7 @@ set long 2000000000
 var x clob
 
 begin
-  :x := ddd_html.table_doc('DDD_TEXT');
+  :x := ddd_html.crate_page;
 end;
 /
 

@@ -1,6 +1,7 @@
 create or replace
 package ddd_html is
 
+    function crate_page return clob;
 
     function table_doc(
       p_table_name in all_tables.table_name%type

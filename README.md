@@ -15,10 +15,12 @@ This project grew out of my need for something simpler and more modern than [PLD
 
 Change into the `sql` directory and run the `build.sql` script. This will create all the database objects required and populate the ddd_text table with initial data.
 
-Populating the CLOB columns of the `ddd_text` table requires different methods. If you have access to a database directory `select * from all_directories;` the quickest method is to use the function `ddd_util.load_text`.
+Populating the CLOB columns of the `ddd_text` table requires different methods. If you have access to a database directory or can create one `create or replace directory ddd_dir as '/vagrant';` the quickest method is to use the function `ddd_util.load_text('ddd_dir')`.
 
+* If required, create a database directory object e.g. `create or replace directory ddd_dir as '/vagrant';`
+* Grant permissions to the schema that contains the ddd objects `grant read on directory ddd_dir to hr;`.
 * Copy all files from the templates directory into the database accessible directory.
-* Call the procedure `exec ddd_util.load_text('[directory_name]');`.
+* Call the procedure `exec ddd_util.load_text('[ddd_dir]');`.
 
 If you don't have access to a database directory then you can manually load the CLOB data via SQL Developer. Use the `ddd_text.file_name` column value to determine which file's data to load into the CLOB field. Double click the CLOB field you want to populate and then make sure you click the edit button (pencil icon) before you copy/paste the multi line data.
 

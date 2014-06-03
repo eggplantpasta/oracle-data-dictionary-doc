@@ -1,6 +1,39 @@
 create or replace
 package body ddd_html is
 
+    function crate_page return clob is
+      l_retval clob;
+      l_text clob;
+      l_body clob;
+    begin
+      -- get the template
+      l_retval := ddd_util.get_text('html', 'page-template');
+
+      -- replace placeholders
+      l_text := ddd_util.get_text('text', 'pagetitle');
+      l_retval := replace(l_retval, '<!-- template-pagetitle -->', l_text);
+
+      l_text := ddd_util.get_text('text', 'headtitle');
+      l_retval := replace(l_retval, '<!-- template-headtitle -->', l_text);
+
+      -- assemble the body
+      -- overview
+      l_body :=
+        '<h2 id="overview">Overview</h2>' ||
+        ddd_util.get_text('html', 'overview')
+      ;
+      -- data
+      l_body := l_body || '<h2 id="data">Data</h2>';
+      l_text := table_doc('DDD_TEXT');
+      l_body := l_body || l_text;
+
+      --code
+      l_body := l_body || '<h2 id="code">Code</h2>';
+      l_retval := replace(l_retval, '<!-- template-content -->', l_body);
+
+      return l_retval;
+    end crate_page;
+
 
     function table_doc(
       p_table_name in all_tables.table_name%type
@@ -25,25 +58,29 @@ package body ddd_html is
 
       open l_cursor for
         select
-          lower(column_name) "Column_Name",
-          lower(data_type) ||
-          decode(data_type,
-            'CHAR',      '('|| char_length ||')',
-            'VARCHAR',   '('|| char_length ||')',
-            'VARCHAR2',  '('|| char_length ||')',
-            'NCHAR',     '('|| char_length ||')',
-            'NVARCHAR',  '('|| char_length ||')',
-            'NVARCHAR2', '('|| char_length ||')',
+          lower(t.column_name) "Column_Name",
+          lower(t.data_type) ||
+          decode(t.data_type,
+            'CHAR',      '('|| t.char_length ||')',
+            'VARCHAR',   '('|| t.char_length ||')',
+            'VARCHAR2',  '('|| t.char_length ||')',
+            'NCHAR',     '('|| t.char_length ||')',
+            'NVARCHAR',  '('|| t.char_length ||')',
+            'NVARCHAR2', '('|| t.char_length ||')',
             'NUMBER',    '('||
-            nvl(data_precision,data_length)||
-                 decode(data_scale,null,null,
-                        ', '||data_scale)||')',
+            nvl(t.data_precision,t.data_length)||
+                 decode(t.data_scale,null,null,
+                        ', '||t.data_scale)||')',
             null) "Type",
-            nullable "Nullable"
-         from sys.all_tab_columns
-        where owner = nvl(p_owner, user)
-          and table_name = p_table_name
-        order by owner, table_name, column_id
+          decode(t.nullable, 'N', '<abbr title="not null" class="badge">NN</abbr>') "_",
+          c.comments "Comments"
+         from sys.all_tab_columns t, sys.all_col_comments c
+        where t.owner = nvl(p_owner, user)
+          and t.table_name = p_table_name
+          and t.owner = c.owner
+          and t.table_name = c.table_name
+          and t.column_name = c.column_name
+        order by t.column_id
         ;
       l_retval := l_retval || cursor2table(l_cursor, 'table table-hover table-condensed');
 
@@ -113,22 +150,9 @@ package body ddd_html is
         -- create xml from ref cursor --
         l_xmldata := dbms_xmlgen.getxmltype(l_context,dbms_xmlgen.none);
 
-        -- this is a generic XSL for Oracle's default XML row and rowset tags
-        -- " " is a non-breaking space
-        l_xsl := l_xsl || q'[<?xml version="1.0" encoding="ISO-8859-1"?>]';
-        l_xsl := l_xsl || q'[<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">]';
-        l_xsl := l_xsl || q'[ <xsl:output method="html"/>]';
-        l_xsl := l_xsl || q'[ <xsl:template match="/">]';
-        l_xsl := l_xsl || q'[   <dl>]';
-        l_xsl := l_xsl || q'[     <xsl:for-each select="/ROWSET/*">]';
-        l_xsl := l_xsl || q'[         <dt><xsl:value-of select="./*[1]"/></dt>]';
-        l_xsl := l_xsl || q'[         <dd><xsl:value-of select="./*[2]"/></dd>]';
-        l_xsl := l_xsl || q'[     </xsl:for-each>]';
-        l_xsl := l_xsl || q'[   </dl>]';
-        l_xsl := l_xsl || q'[ </xsl:template>]';
-        l_xsl := l_xsl || q'[</xsl:stylesheet>]';
+        l_xsl := ddd_util.get_text('xsl', 'html-dl');
 
-        -- table classes
+        -- dl classes
         if p_class is not null then
             l_xsl := replace(l_xsl, '<dl>', '<dl class="' || p_class || '">');
         end if;
