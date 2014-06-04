@@ -3,3 +3,7 @@ body { padding-top: 70px; }
 .pk {
 	background-color: #5bc0de;
 }
+
+.nowrap {
+	white-space: nowrap;
+}

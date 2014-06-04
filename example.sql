@@ -3,15 +3,10 @@ set feedback off
 set echo off
 set pagesize 0
 set verify off
+set serveroutput on unlimited
 set long 2000000000
 
-var x clob
-
-begin
-  :x := ddd_html.crate_page;
-end;
-/
-
+set serveroutput on unlimited
 spool index.html
-select :x from dual;
+exec ddd_util.output_text;
 spool off

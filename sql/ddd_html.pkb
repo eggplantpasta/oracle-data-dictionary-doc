@@ -2,9 +2,9 @@ create or replace
 package body ddd_html is
 
     function crate_page return clob is
-      l_retval clob;
-      l_text clob;
-      l_body clob;
+      l_retval     clob;
+      l_text       clob;
+      l_body       clob;
     begin
       -- get the template
       l_retval := ddd_util.get_text('html', 'page-template');
@@ -24,8 +24,17 @@ package body ddd_html is
       ;
       -- data
       l_body := l_body || '<h2 id="data">Data</h2>';
-      l_text := table_doc('DDD_TEXT');
-      l_body := l_body || l_text;
+      l_text := ddd_util.get_text('text', 'object-like', '%');
+      for r in (
+        select table_name 
+        from all_tables 
+        where table_name like l_text
+        and owner = user
+        order by table_name
+      ) loop
+        l_body := l_body || table_doc(r.table_name);
+         --l_body := l_body || table_doc('DDD_TEXT');
+      end loop;
 
       --code
       l_body := l_body || '<h2 id="code">Code</h2>';
@@ -52,13 +61,16 @@ package body ddd_html is
       close l_cursor;
 
       l_retval := l_retval ||
-        '<h4 name="' || lower(r_all_tab_comments.table_type) || '-' || lower(r_all_tab_comments.table_name) || '">' ||
-        lower(r_all_tab_comments.table_name) || ' <small>' || lower(r_all_tab_comments.table_type) || '</small></h4>' ||
+        '<h3 name="' || lower(r_all_tab_comments.table_type) || '-' || lower(r_all_tab_comments.table_name) || '">' ||
+        lower(r_all_tab_comments.table_name) || ' <small>' || lower(r_all_tab_comments.table_type) || '</small></h3>' ||
         '<p>' || r_all_tab_comments.comments || '</p>';
 
       open l_cursor for
         select
-          lower(t.column_name) "Column_Name",
+          '<span class="nowrap">' ||
+          lower(t.column_name) ||
+          '</span>' "Column_Name",
+          '<span class="nowrap">' ||
           lower(t.data_type) ||
           decode(t.data_type,
             'CHAR',      '('|| t.char_length ||')',
@@ -71,7 +83,9 @@ package body ddd_html is
             nvl(t.data_precision,t.data_length)||
                  decode(t.data_scale,null,null,
                         ', '||t.data_scale)||')',
-            null) "Type",
+            null) ||
+          '</span>' "Type",
+          '<span class="nowrap">' ||
             (
               select decode(ic.column_position, null, null, '<abbr title="primary key" class="badge pk">PK'|| ic.column_position ||'</abbr>')
               from sys.all_ind_columns ic, all_constraints ac
@@ -83,7 +97,8 @@ package body ddd_html is
               and ic.table_name = c.table_name
               and ic.column_name = c.column_name
             ) ||
-          decode(t.nullable, 'N', ' <abbr title="not null" class="badge">NN</abbr>') "_",
+          decode(t.nullable, 'N', ' <abbr title="not null" class="badge">NN</abbr>') ||
+          '</span>' "_",
           c.comments "Comments"
          from sys.all_tab_columns t, sys.all_col_comments c
         where t.owner = nvl(p_owner, user)
