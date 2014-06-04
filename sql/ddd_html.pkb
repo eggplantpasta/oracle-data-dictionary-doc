@@ -10,10 +10,10 @@ package body ddd_html is
       l_retval := ddd_util.get_text('html', 'page-template');
 
       -- replace placeholders
-      l_text := ddd_util.get_text('text', 'pagetitle');
+      l_text := ddd_util.get_text('text', 'pagetitle', user || ' schema docs');
       l_retval := replace(l_retval, '<!-- template-pagetitle -->', l_text);
 
-      l_text := ddd_util.get_text('text', 'headtitle');
+      l_text := ddd_util.get_text('text', 'headtitle', user);
       l_retval := replace(l_retval, '<!-- template-headtitle -->', l_text);
 
       -- assemble the body
@@ -24,6 +24,7 @@ package body ddd_html is
       ;
       -- data
       l_body := l_body || '<h2 id="data">Data</h2>';
+      l_body := l_body || '<h3 id="data">Tables</h3>';
       l_text := table_doc('DDD_TEXT');
       l_body := l_body || l_text;
 
@@ -72,6 +73,7 @@ package body ddd_html is
                  decode(t.data_scale,null,null,
                         ', '||t.data_scale)||')',
             null) "Type",
+          decode(t.nullable, 'N', '<abbr title="primary key" class="badge">PK</abbr>') "_",
           decode(t.nullable, 'N', '<abbr title="not null" class="badge">NN</abbr>') "_",
           c.comments "Comments"
          from sys.all_tab_columns t, sys.all_col_comments c

@@ -1,9 +1,9 @@
 create table ddd_text
 (
     text_type varchar2(50) not null,
-    text_name varchar2(500) not null,
-    description varchar2(50),
-    filename varchar2(500),
+    text_name varchar2(50) not null,
+    description varchar2(500),
+    filename varchar2(50),
     text clob default 'clob data not yet loaded' not null ,
 
     constraint pk_text primary key (text_type, text_name)

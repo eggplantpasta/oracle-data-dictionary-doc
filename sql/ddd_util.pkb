@@ -3,8 +3,9 @@ package body ddd_util is
 
 
   function get_text(
-    p_text_type in ddd_text.text_type%type
-  , p_text_name in ddd_text.text_name%type
+    p_text_type    in ddd_text.text_type%type
+  , p_text_name    in ddd_text.text_name%type
+  , p_text_default in ddd_text.text_name%type default null
   ) return clob is
     l_retval clob;
     l_cursor sys_refcursor;
@@ -16,13 +17,18 @@ package body ddd_util is
     fetch l_cursor into l_retval;
     close l_cursor;
 
+    if l_retval is null or dbms_lob.getlength(l_retval) = 0 then
+      l_retval := p_text_default;
+    end if;
+
     return l_retval;
   end get_text;
 
 
-  procedure load_all_text is
+  procedure load_all_text(p_file_directory in varchar2) is
   begin
-    for r in (
+   g_file_directory := p_file_directory;
+   for r in (
       select * from ddd_text where filename is not null
     ) loop
       load_text(r.text_type, r.text_name, r.filename);
@@ -44,7 +50,7 @@ package body ddd_util is
     l_warning      number;
 
   begin
-      l_bfile := bfilename (c_file_directory, p_filename);
+      l_bfile := bfilename (g_file_directory, p_filename);
 
       if dbms_lob.fileexists (l_bfile) = 1 then
 
@@ -71,5 +77,11 @@ package body ddd_util is
 
   end load_text;
 
+
+  procedure output_text is
+  begin
+    dbms_output.enable(null);
+    dbms_output.put_line(ddd_html.crate_page);
+  end;
 
 end ddd_util;

@@ -1,0 +1,7 @@
+"html","page-template","","page-template.html"
+"html","overview","EDIT THIS. The overview text in the file overview.html should be replaced with text relevant to the schema being documented.","overview.html"
+"xsl","html-table","","html-table.xsl"
+"xsl","html-dl","","html-dl.xsl"
+"text","pagetitle","EDIT THIS. Optional. Schema name used if null.",""
+"text","headtitle","EDIT THIS. Optional. Schema name used if null.",""
+"text","object-like","EDIT THIS. Optional. All objects documented if null.",""
