@@ -72,7 +72,18 @@ package body ddd_html is
                  decode(t.data_scale,null,null,
                         ', '||t.data_scale)||')',
             null) "Type",
-          decode(t.nullable, 'N', '<abbr title="not null" class="badge">NN</abbr>') "_",
+            (
+              select decode(ic.column_position, null, null, '<abbr title="primary key" class="badge pk">PK'|| ic.column_position ||'</abbr>')
+              from sys.all_ind_columns ic, all_constraints ac
+              where ac.constraint_type = 'P'
+              and ic.index_name = ac.index_name
+              and ic.table_owner = ac.owner
+              and ic.table_name = ac.table_name 
+              and ic.table_owner = c.owner
+              and ic.table_name = c.table_name
+              and ic.column_name = c.column_name
+            ) ||
+          decode(t.nullable, 'N', ' <abbr title="not null" class="badge">NN</abbr>') "_",
           c.comments "Comments"
          from sys.all_tab_columns t, sys.all_col_comments c
         where t.owner = nvl(p_owner, user)
