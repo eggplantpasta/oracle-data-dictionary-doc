@@ -1,7 +1,8 @@
 create or replace
 package ddd_util is
 
-	g_file_directory varchar2(30) := 'DDD_DIR';
+  g_file_directory varchar2(30) := 'DDD_DIR';
+  g_nl varchar2(1) := chr(10);
 
 
 	function get_text(
@@ -21,6 +22,6 @@ package ddd_util is
   , p_filename  ddd_text.filename%type
   );
 
-  procedure output_text;
+  procedure put_clob(p_clob in clob);
 
 end ddd_util;

@@ -1,11 +1,12 @@
 create or replace
 package ddd_html is
 
-    function crate_page return clob;
+
+    function create_page return clob;
 
     function table_doc(
-      p_table_name in all_tables.table_name%type
-    , p_owner      in all_tables.owner%type default null
+      p_object_name in user_objects.object_name%type
+    , p_object_type in user_objects.object_type%type
     ) return clob;
 
     function cursor2table(

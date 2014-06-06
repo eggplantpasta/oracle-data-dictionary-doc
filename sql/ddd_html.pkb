@@ -1,71 +1,100 @@
 create or replace
 package body ddd_html is
 
-    function crate_page return clob is
+    function create_page return clob is
       l_retval     clob;
+      l_html       clob;
       l_text       clob;
-      l_body       clob;
     begin
-      -- get the template
-      l_retval := ddd_util.get_text('html', 'page-template');
+      dbms_lob.createtemporary(l_retval,true);
 
-      -- replace placeholders
+      -- get the head template and do replacements and append to return value
+      l_html := ddd_util.get_text('html', 'page-head');
       l_text := ddd_util.get_text('text', 'pagetitle', user || ' schema docs');
-      l_retval := replace(l_retval, '<!-- template-pagetitle -->', l_text);
-
+      l_html := replace(l_html, '<!-- template-pagetitle -->', l_text);
       l_text := ddd_util.get_text('text', 'headtitle', user);
-      l_retval := replace(l_retval, '<!-- template-headtitle -->', l_text);
+      l_html := replace(l_html, '<!-- template-headtitle -->', l_text);
+      dbms_lob.append(l_retval,l_html);
 
       -- assemble the body
       -- overview
-      l_body :=
-        '<h2 id="overview">Overview</h2>' ||
-        ddd_util.get_text('html', 'overview')
-      ;
-      -- data
-      l_body := l_body || '<h2 id="data">Data</h2>';
-      l_text := ddd_util.get_text('text', 'object-like', '%');
-      for r in (
-        select table_name 
-        from all_tables 
-        where table_name like l_text
-        and owner = user
-        order by table_name
-      ) loop
-        l_body := l_body || table_doc(r.table_name);
-         --l_body := l_body || table_doc('DDD_TEXT');
-      end loop;
+      l_html := '<h1 id="overview">Overview</h1>' || ddd_util.get_text('html', 'overview-intro');
+      dbms_lob.append(l_retval,l_html);
 
-      --code
-      l_body := l_body || '<h2 id="code">Code</h2>';
-      l_retval := replace(l_retval, '<!-- template-content -->', l_body);
+      -- data
+      l_html := '<h1 id="data">Data</h1>' || ddd_util.get_text('html', 'data-intro');
+      l_html := l_html || '<h2 id="data">Tables</h2>';
+
+      for r in (
+        select object_name, object_type
+        from user_objects
+        where regexp_like (object_name, ddd_util.get_text('text', 'object-regexp-like', '.*'))
+        and not regexp_like (object_name, ddd_util.get_text('text', 'object-not-regexp-like', '^$'))
+        and object_type = 'TABLE' 
+        order by object_name
+      ) loop
+        l_html := l_html || table_doc(r.object_name, r.object_type);
+      end loop;
+      dbms_lob.append(l_retval,l_html);
+
+      l_html := '<h2 id="data">Views</h2>';
+      for r in (
+        select object_name, object_type
+        from user_objects
+        where regexp_like (object_name, ddd_util.get_text('text', 'object-regexp-like', '.*'))
+        and not regexp_like (object_name, ddd_util.get_text('text', 'object-not-regexp-like', '^$'))
+        and object_type = 'VIEW' 
+        order by object_name
+      ) loop
+        l_html := l_html || table_doc(r.object_name, r.object_type);
+      end loop;
+      dbms_lob.append(l_retval,l_html);
+
+      l_html := '<h2 id="data">Materialized Views</h2>';
+      for r in (
+        select object_name, object_type
+        from user_objects
+        where regexp_like (object_name, ddd_util.get_text('text', 'object-regexp-like', '.*'))
+        and not regexp_like (object_name, ddd_util.get_text('text', 'object-not-regexp-like', '^$'))
+        and object_type = 'MATERIALIZED VIEW' 
+        order by object_name
+      ) loop
+        l_html := l_html || table_doc(r.object_name, r.object_type);
+      end loop;
+      dbms_lob.append(l_retval,l_html);
+
+      -- code
+      l_html := '<h1 id="code">Code</h1>' || ddd_util.get_text('html', 'code-intro');
+      dbms_lob.append(l_retval,l_html);
+
+      -- footer
+      l_html := ddd_util.get_text('html', 'page-foot');
+      dbms_lob.append(l_retval,l_html);
 
       return l_retval;
-    end crate_page;
+    end create_page;
 
 
     function table_doc(
-      p_table_name in all_tables.table_name%type
-    , p_owner      in all_tables.owner%type default null
+      p_object_name in user_objects.object_name%type
+    , p_object_type in user_objects.object_type%type
     ) return clob is
-      l_retval      clob;
-      l_cursor      sys_refcursor;
-
-      r_all_tab_comments all_tab_comments%rowtype;
+      l_retval   clob;
+      c          sys_refcursor;
+      l_comments user_tab_comments.comments%type;
 
     begin
 
-      open l_cursor for
-        select * from all_tab_comments where table_name = p_table_name;
-      fetch l_cursor into r_all_tab_comments;
-      close l_cursor;
+      open c for select comments from user_tab_comments where table_name = p_object_name and table_type = p_object_type;
+      fetch c into l_comments;
+      close c;
 
       l_retval := l_retval ||
-        '<h3 name="' || lower(r_all_tab_comments.table_type) || '-' || lower(r_all_tab_comments.table_name) || '">' ||
-        lower(r_all_tab_comments.table_name) || ' <small>' || lower(r_all_tab_comments.table_type) || '</small></h3>' ||
-        '<p>' || r_all_tab_comments.comments || '</p>';
+        '<h3 name="' || lower(p_object_name) || '-' || lower(p_object_type) || '">' ||
+        lower(p_object_name) || ' <small>' || lower(p_object_type) || '</small></h3>' ||
+        '<p>' || l_comments || '</p>';
 
-      open l_cursor for
+      open c for
         select
           '<span class="nowrap">' ||
           lower(t.column_name) ||
@@ -88,27 +117,23 @@ package body ddd_html is
           '<span class="nowrap">' ||
             (
               select decode(ic.column_position, null, null, '<abbr title="primary key" class="badge pk">PK'|| ic.column_position ||'</abbr>')
-              from sys.all_ind_columns ic, all_constraints ac
+              from user_ind_columns ic, user_constraints ac
               where ac.constraint_type = 'P'
               and ic.index_name = ac.index_name
-              and ic.table_owner = ac.owner
-              and ic.table_name = ac.table_name 
-              and ic.table_owner = c.owner
+              and ic.table_name = ac.table_name
               and ic.table_name = c.table_name
               and ic.column_name = c.column_name
             ) ||
           decode(t.nullable, 'N', ' <abbr title="not null" class="badge">NN</abbr>') ||
           '</span>' "_",
           c.comments "Comments"
-         from sys.all_tab_columns t, sys.all_col_comments c
-        where t.owner = nvl(p_owner, user)
-          and t.table_name = p_table_name
-          and t.owner = c.owner
+         from user_tab_columns t, user_col_comments c
+        where t.table_name = p_object_name
           and t.table_name = c.table_name
           and t.column_name = c.column_name
         order by t.column_id
         ;
-      l_retval := l_retval || cursor2table(l_cursor, 'table table-hover table-condensed');
+      l_retval := l_retval || cursor2table(c, 'table table-hover table-condensed');
 
       return l_retval;
     end table_doc;

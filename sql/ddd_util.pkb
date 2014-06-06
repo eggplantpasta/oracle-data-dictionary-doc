@@ -78,10 +78,17 @@ package body ddd_util is
   end load_text;
 
 
-  procedure output_text is
+  procedure put_clob(p_clob in clob) is
+    l_offset  integer := 1;
+    l_size    integer := dbms_lob.getlength(p_clob);
+    l_maxsize integer := least(32767, l_size);
   begin
     dbms_output.enable(null);
-    dbms_output.put_line(ddd_html.crate_page);
-  end;
+    while l_offset < l_size loop
+      dbms_output.put_line(dbms_lob.substr(p_clob, least(l_maxsize, l_size - l_offset), l_offset));
+      l_offset := l_offset + least(l_maxsize, l_size - l_offset);
+    end loop;
+  end put_clob;
+
 
 end ddd_util;
