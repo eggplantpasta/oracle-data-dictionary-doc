@@ -2,44 +2,21 @@ create or replace
 package body ddd_util is
 
 
-  function get_text(
-    p_text_type    in ddd_text.text_type%type
-  , p_text_name    in ddd_text.text_name%type
-  , p_text_default in ddd_text.text_name%type default null
-  ) return clob is
-    l_retval clob;
-    l_cursor sys_refcursor;
+  procedure load_db_text(p_file_directory in varchar2) is
   begin
-    open l_cursor for
-      select text from ddd_text
-      where text_type = p_text_type
-      and text_name = p_text_name;
-    fetch l_cursor into l_retval;
-    close l_cursor;
-
-    if l_retval is null or dbms_lob.getlength(l_retval) = 0 then
-      l_retval := p_text_default;
-    end if;
-
-    return l_retval;
-  end get_text;
-
-
-  procedure load_all_text(p_file_directory in varchar2) is
-  begin
-   g_file_directory := p_file_directory;
    for r in (
       select * from ddd_text where filename is not null
     ) loop
-      load_text(r.text_type, r.text_name, r.filename);
+      load_text(r.text_type, r.text_name, r.filename, p_file_directory);
     end loop;
-  end load_all_text;
+  end load_db_text;
 
 
   procedure load_text(
     p_text_type  ddd_text.text_type%type
   , p_text_name ddd_text.text_name%type
   , p_filename  ddd_text.filename%type
+  , p_file_directory  in varchar2
   ) is
     l_bfile   BFILE;
     l_clob    clob;
@@ -50,7 +27,7 @@ package body ddd_util is
     l_warning      number;
 
   begin
-      l_bfile := bfilename (g_file_directory, p_filename);
+      l_bfile := bfilename (p_file_directory, p_filename);
 
       if dbms_lob.fileexists (l_bfile) = 1 then
 

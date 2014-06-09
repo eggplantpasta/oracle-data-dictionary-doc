@@ -1,4 +1,6 @@
-body { padding-top: 70px; }
+body {
+	padding-top: 70px;
+}
 
 .pk {
 	background-color: #5bc0de;
@@ -7,3 +9,5 @@ body { padding-top: 70px; }
 .nowrap {
 	white-space: nowrap;
 }
+
+/* custom css can be added below if required */

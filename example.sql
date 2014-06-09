@@ -9,9 +9,8 @@ set trimspool on
 set long 2000000000
 set longchunksize 2000000000
 set linesize 32767
-
 variable x clob
-exec :x := ddd_html.create_page;
+exec :x := ddd_html.test;
 spool index.html
 print x
 spool off
