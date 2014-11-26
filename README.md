@@ -7,13 +7,9 @@ Automatic generation of schema documentation using the Oracle data dictionary ta
 
 This personal project is pre-pre-alpha. It's quite fiddly to use and incomplete (not everything you read here exists). Sorry.
 
-Refer to the issue queue to see plans and progress.
-
-
 ## Overview
 
 This project grew out of my need for something simpler with more modern markup than [PLDOC](http://sourceforge.net/projects/pldoc/). I have used only SQL scripts and PL/SQL so it has no requirements outside of database and file system access. The output HTML is styled using [Bootstrap 3](http://getbootstrap.com/) for a modern, clean look.
-
 
 
 ## Installation
