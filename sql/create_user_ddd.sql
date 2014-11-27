@@ -2,6 +2,7 @@
 -- modify as appropriate for your environment
 
 -- start run as as privileged user e.g. system
+-- drop user ddd cascade;
 create user ddd identified by ddd;
 grant connect, resource to ddd;
 grant create database link, create procedure to ddd;

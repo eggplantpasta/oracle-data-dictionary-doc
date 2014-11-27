@@ -9,57 +9,24 @@ Automatic generation of schema documentation using the Oracle data dictionary ta
 
 ## Overview
 
+This PL/SQL package generates database documentation from Oracle data dictionary objects combined with a [mustache](http://mustache.github.io/) template.
+
+See the example [here]().
+
 This project grew out of my need for something simpler with more modern markup than [PLDOC](http://sourceforge.net/projects/pldoc/). I have used only SQL scripts and PL/SQL so it has no requirements outside of database and file system access. The default template output HTML is styled using [Bootstrap 3](http://getbootstrap.com/) for a modern, clean look.
 
-## Usage
+## Quick Start
+Copy the contents of the repository /files/* directory (custom.css and ddd.mustache) to the directory corresponding to a database directory object with permissions to read and write.
 
-### Prerequisites
-
-This package needs access to the schema objects being documented. It can be created in the same schema as the one being documented as it excludes it's own objects by default. The example installation below assumes the package is being created in the Oracle example schema 'HR'.
-
-### Usage
-
-To generate documentation for the current schema:
+Create the "ddd" package in the schema you wish to document.
 ```sql
-begin
-  ddd.document(
-    p_directory => 'ddd_dir'
-  );
-end;
-/
+@ddd.sql
 ```
-
-### Installation
-The schema is used for this package will require access to the filesystem as it needs to read templates and write output files.
-
-* If required, create a database directory object e.g.
+Generate the documentation (change 'DDD_DIR below to match your environment').
 ```sql
-create or replace directory ddd_dir as '\git\oracle-data-dictionary-doc\files';
+exec ddd.document('DDD_DIR');
 ```
-* Grant permissions on the directory to the schema that contains the ddd objects.
-```sql
-grant read, write on directory ddd_dir to hr;
-```
-* Copy all files from the repositoriy's oracle-data-dictionary-doc\files directory into the database accessible directory.
-* Call the procedure `exec ddd_util.load_text('[ddd_dir]');`.
-
-## Usage
-
-To generate documentation for the current (user) schema:
-
-### The input
-
-Use syntax similar to [Javadoc](http://en.wikipedia.org/wiki/Javadoc).
-
-### The output
-
-
-## Running the examples
-
-### DDD
-
-### HR
-
+Take a look at the resulting documentation file  ddd.html.
 
 ## Acknowledgements
 
