@@ -5,34 +5,43 @@ Automatic generation of schema documentation using the Oracle data dictionary ta
 
 ## Note
 
-This personal project is pre-pre-alpha. It's quite fiddly to use and incomplete (not everything you read here exists). Sorry.
+> This personal project is pre-pre-alpha. It's quite fiddly to use and incomplete (not everything you read here exists). Sorry.
 
 ## Overview
 
-This project grew out of my need for something simpler with more modern markup than [PLDOC](http://sourceforge.net/projects/pldoc/). I have used only SQL scripts and PL/SQL so it has no requirements outside of database and file system access. The output HTML is styled using [Bootstrap 3](http://getbootstrap.com/) for a modern, clean look.
+This project grew out of my need for something simpler with more modern markup than [PLDOC](http://sourceforge.net/projects/pldoc/). I have used only SQL scripts and PL/SQL so it has no requirements outside of database and file system access. The default template output HTML is styled using [Bootstrap 3](http://getbootstrap.com/) for a modern, clean look.
 
-
-## Installation
+## Usage
 
 ### Prerequisites
 
-This project needs access to the schema objects being documented. It can be created in the same schema as the one being documented as it excludes it's own objects by default.
+This package needs access to the schema objects being documented. It can be created in the same schema as the one being documented as it excludes it's own objects by default. The example installation below assumes the package is being created in the Oracle example schema 'HR'.
 
-What ever schema is used for this project will require access to the filesystem as it uses UTL_FILE for reading templates and writing the documentation.
+### Usage
 
-### Creating the database objects
+To generate documentation for the current schema:
+```sql
+begin
+  ddd.document(
+    p_directory => 'ddd_dir'
+  );
+end;
+/
+```
 
-Change into this project's `sql` directory and run the `build.sql` script. This will create all the database objects required and populate the ddd_text table with initial data.
+### Installation
+The schema is used for this package will require access to the filesystem as it needs to read templates and write output files.
 
-Populating the CLOB columns of the `ddd_text` table requires different methods. If you have access to a database directory or can create one `create or replace directory ddd_dir as '/vagrant';` the quickest method is to use the function `ddd_util.load_text('ddd_dir')`.
-
-* If required, create a database directory object e.g. `create or replace directory ddd_dir as '/vagrant';`
-* Grant permissions to the schema that contains the ddd objects `grant read on directory ddd_dir to hr;`.
-* Copy all files from the templates directory into the database accessible directory.
+* If required, create a database directory object e.g.
+```sql
+create or replace directory ddd_dir as '\git\oracle-data-dictionary-doc\files';
+```
+* Grant permissions on the directory to the schema that contains the ddd objects.
+```sql
+grant read, write on directory ddd_dir to hr;
+```
+* Copy all files from the repositoriy's oracle-data-dictionary-doc\files directory into the database accessible directory.
 * Call the procedure `exec ddd_util.load_text('[ddd_dir]');`.
-
-If you don't have access to a database directory then you can manually load the CLOB data via SQL Developer. Use the `ddd_text.file_name` column value to determine which file's data to load into the CLOB field. Double click the CLOB field you want to populate and then make sure you click the edit button (pencil icon) before you copy/paste the multi line data.
-
 
 ## Usage
 
