@@ -11,7 +11,7 @@ Automatic generation of schema documentation using the Oracle data dictionary ta
 
 This PL/SQL package generates database documentation from Oracle data dictionary objects combined with a [mustache](http://mustache.github.io/) template.
 
-See the example [here]().
+See the example [here](files/dddexample.html).
 
 This project grew out of my need for something simpler with more modern markup than [PLDOC](http://sourceforge.net/projects/pldoc/). I have used only SQL scripts and PL/SQL so it has no requirements outside of database and file system access. The default template output HTML is styled using [Bootstrap 3](http://getbootstrap.com/) for a modern, clean look.
 
