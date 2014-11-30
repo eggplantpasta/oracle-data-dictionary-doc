@@ -30,6 +30,14 @@ procedure clob2file (
 , p_clob     in clob
 );
 
+/** document schema */
+procedure document (
+  p_dir      in varchar2
+, p_template in varchar2 default 'ddd.mustache'
+, p_document in varchar2 default 'ddd.html'
+, p_schema   in varchar2 default null
+);
+
 end ddd;
 /
 
@@ -143,6 +151,17 @@ exception
     raise;
 
 end clob2file;
+
+
+procedure document (
+  p_dir      in varchar2
+, p_template in varchar2 default 'ddd.mustache'
+, p_document in varchar2 default 'ddd.html'
+, p_schema   in varchar2 default null
+) is
+begin
+  ddd.clob2file (p_dir, p_document, ddd.file2clob (p_dir, p_template));
+end document;
 
 
 end ddd;
