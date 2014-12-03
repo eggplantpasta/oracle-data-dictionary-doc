@@ -1,3 +1,4 @@
+set define off;
 create or replace
 package ddd is
 
@@ -76,9 +77,25 @@ begin
     end loop;
   end if;
 
-  return(l_return);
+  return l_return;
 
 end clob_replace;
+
+
+function clob_escape (
+  p_clob in clob
+) return clob is
+  l_return clob := p_clob;
+begin
+  -- escape html special characters in a clob
+  l_return := clob_replace(l_return, '&', '&amp;');
+  l_return := clob_replace(l_return, '"', '&quot;');
+  l_return := clob_replace(l_return, '<', '&lt;');
+  l_return := clob_replace(l_return, '>', '&gt;');
+  l_return := clob_replace(l_return, '''', '&#x27;');
+  l_return := clob_replace(l_return, '/', '&#x2F;');
+  return l_return;
+end clob_escape;
 
 
 -- mustache template proceessing
