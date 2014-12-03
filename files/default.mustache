@@ -8,7 +8,7 @@
     <meta name="author" content="">
     <link rel="shortcut icon" href="assets/favicon.ico">
 
-    <title>HR Schema Documentation</title>
+    <title>{{schema}} Schema Documentation</title>
     <!-- Refer to https://github.com/eggplantpasta/oracle-data-dictionary-doc for details on how to customise this example template. -->
 
     <!-- Bootstrap core CSS -->
@@ -54,8 +54,8 @@
       <div class="content">
         <section id="overview">
           <h1>Overview</h1>
-          <p class="lead">The Oracle Database Sample Schema, Human Resources.</p>
-          <p>In the Human Resource (HR) records, each employee has an identification number, e-mail address, job identification code, salary, and manager. Some employees earn commissions in addition to their salary. The company also tracks information about jobs within the organization. Each job has an identification code, job title, and a minimum and maximum salary range for the job. Some employees have been with the company for a long time and have held different positions within the company. When an employee resigns, the duration the employee was working, the job identification number, and the department are recorded.</p>
+          <p class="lead">Database documentation for Oracle schema {{schema}}.</p>
+          <p>This docuemntation was generated on {{longdate}} from from the oracle data dictionary via the package "ddd". The code for this package can be found at <a href="https://github.com/eggplantpasta/oracle-data-dictionary-doc">GitHub</a>.</p>
         </section>
         <section id="data">
           {{{data-intro}}}

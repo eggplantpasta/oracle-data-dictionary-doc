@@ -32,10 +32,10 @@ procedure clob2file (
 
 /** document schema */
 procedure document (
-  p_dir      in varchar2
-, p_template in varchar2 default 'ddd.mustache'
-, p_document in varchar2 default 'ddd.html'
-, p_schema   in varchar2 default null
+  p_dir               in varchar2
+, p_template_filename in varchar2 default 'default.mustache'
+, p_document_filename in varchar2 default 'index.html'
+, p_schema            in varchar2 default null
 );
 
 end ddd;
@@ -43,6 +43,43 @@ end ddd;
 
 create or replace
 package body ddd is
+
+-- clob utilities
+
+function clob_replace (
+  p_clob          in clob
+, p_what          in varchar2
+, p_with          in varchar2 ) return clob is
+
+  c_whatlen       constant pls_integer := length(p_what);
+  c_withlen       constant pls_integer := length(p_with);
+
+  l_return        clob;
+  l_segment       clob;
+  l_pos           pls_integer := 1-c_withlen;
+  l_offset        pls_integer := 1;
+
+begin
+
+  if p_what is not null then
+    while l_offset < dbms_lob.getlength(p_clob) loop
+      l_segment := dbms_lob.substr(p_clob,32767,l_offset);
+      loop
+        l_pos := dbms_lob.instr(l_segment,p_what,l_pos+c_withlen);
+        exit when (nvl(l_pos,0) = 0) or (l_pos = 32767-c_withlen);
+        l_segment := to_clob( dbms_lob.substr(l_segment,l_pos-1)
+                            ||p_with
+                            ||dbms_lob.substr(l_segment,32767-c_whatlen-l_pos-c_whatlen+1,l_pos+c_whatlen));
+      end loop;
+      l_return := l_return||l_segment;
+      l_offset := l_offset + 32767 - c_whatlen;
+    end loop;
+  end if;
+
+  return(l_return);
+
+end clob_replace;
+
 
 -- mustache template proceessing
 
@@ -154,13 +191,34 @@ end clob2file;
 
 
 procedure document (
-  p_dir      in varchar2
-, p_template in varchar2 default 'ddd.mustache'
-, p_document in varchar2 default 'ddd.html'
-, p_schema   in varchar2 default null
+  p_dir               in varchar2
+, p_template_filename in varchar2 default 'default.mustache'
+, p_document_filename in varchar2 default 'index.html'
+, p_schema            in varchar2 default null
 ) is
+  l_schema varchar2(30) := p_schema;
+  l_template clob;
+  
 begin
-  ddd.clob2file (p_dir, p_document, ddd.file2clob (p_dir, p_template));
+  -- defaults
+  if l_schema is null then
+    select sys_context ('USERENV', 'CURRENT_SCHEMA')
+    into l_schema
+    from dual;
+  end if;
+
+  -- fetch the template
+  l_template := ddd.file2clob (p_dir, p_template_filename);
+  
+  -- fetch simple variables
+  
+  -- replace simple variables
+  l_template := clob_replace(l_template, '{{schema}}', l_schema);
+  l_template := clob_replace(l_template, '{{shortdate}}', to_char(sysdate, 'DD-MON-YYYY'));
+  l_template := clob_replace(l_template, '{{longdate}}', to_char(sysdate, 'Month dth, YYYY'));
+  l_template := clob_replace(l_template, '{{datetime}}', to_char(sysdate, 'DD Month YYYY HH24:MI:SS'));
+  
+  ddd.clob2file (p_dir, p_document_filename, l_template);
 end document;
 
 
