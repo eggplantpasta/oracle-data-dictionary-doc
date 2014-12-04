@@ -28,6 +28,33 @@ exec ddd.document('DDD_DIR');
 ```
 Take a look at the resulting documentation file  ddd.html.
 
+## Templates
+
+Teplates are constructed using a subset of the [Mustache](http://mustache.github.io/mustache.5.html) templating syntax.
+
+Variables are supported both escaped {{name}} and unescaped {{{name}}}.
+Comments are also supported {{!comment}}.
+Sections are supported for example:
+```
+{{#repo}}
+  <b>{{name}}</b>
+{{/repo}}
+```
+
+### Available tags
+
+{{schema}} Schema name 
+
+Dates dependent on NLS settings.
+{{shortdate}} 
+{{longdate}}
+{{datetime}}
+
+### Limits
+tag names must be under 32K-1 characters
+values must be under 32K-1 characters
+templates must be under 4GB-1
+
 ## Acknowledgements
 
 * [PLDOC](http://sourceforge.net/projects/pldoc/) for the inspiration.

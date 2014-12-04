@@ -6,8 +6,9 @@ package ddd is
 
 /** process simple mustache tags: variables {{, {{{, and comments {{! */
 function process_simple_tag (
-  p_tag in varchar2
-, p_val in clob
+  p_template in clob
+, p_tag in varchar2
+, p_val in varchar2
 ) return clob;
 
 /** process section mustache tags {{#, {{/ */
@@ -47,88 +48,20 @@ package body ddd is
 
 -- clob utilities
 
-function clob_replace (
-  p_clob          in clob
-, p_what          in varchar2
-, p_with          in varchar2 ) return clob is
-
-  c_whatlen       constant pls_integer := length(p_what);
-  c_withlen       constant pls_integer := length(p_with);
-
-  l_return        clob;
-  l_segment       clob;
-  l_pos           pls_integer := 1-c_withlen;
-  l_offset        pls_integer := 1;
-
-begin
-
-  if p_what is not null then
-    while l_offset < dbms_lob.getlength(p_clob) loop
-      l_segment := dbms_lob.substr(p_clob,32767,l_offset);
-      loop
-        l_pos := dbms_lob.instr(l_segment,p_what,l_pos+c_withlen);
-        exit when (nvl(l_pos,0) = 0) or (l_pos = 32767-c_withlen);
-        l_segment := to_clob( dbms_lob.substr(l_segment,l_pos-1)
-                            ||p_with
-                            ||dbms_lob.substr(l_segment,32767-c_whatlen-l_pos-c_whatlen+1,l_pos+c_whatlen));
-      end loop;
-      l_return := l_return||l_segment;
-      l_offset := l_offset + 32767 - c_whatlen;
-    end loop;
-  end if;
-
-  return l_return;
-
-end clob_replace;
-
-
 function clob_escape (
   p_clob in clob
 ) return clob is
   l_return clob := p_clob;
 begin
   -- escape html special characters in a clob
-  l_return := clob_replace(l_return, '&', '&amp;');
-  l_return := clob_replace(l_return, '"', '&quot;');
-  l_return := clob_replace(l_return, '<', '&lt;');
-  l_return := clob_replace(l_return, '>', '&gt;');
-  l_return := clob_replace(l_return, '''', '&#x27;');
-  l_return := clob_replace(l_return, '/', '&#x2F;');
+  l_return := regexp_replace(l_return, '&', '&amp;');
+  l_return := regexp_replace(l_return, '"', '&quot;');
+  l_return := regexp_replace(l_return, '<', '&lt;');
+  l_return := regexp_replace(l_return, '>', '&gt;');
+  l_return := regexp_replace(l_return, '''', '&#x27;');
+  l_return := regexp_replace(l_return, '/', '&#x2F;');
   return l_return;
 end clob_escape;
-
-
--- mustache template proceessing
-
-function process_simple_tag (
-  p_tag in varchar2
-, p_val in clob
-) return clob is
-begin
-   return
-     case
-       when substr(p_tag, 1, 3) = '{{{' then
-         -- variable, return unescaped value
-         p_val
-       when substr(p_tag, 1, 3) = '{{!' then
-         -- comment, return nothing
-         null
-       when substr(p_tag, 1, 2) = '{{' then
-         -- variable, return HTML escape value
-         htf.escape_sc(p_val)
-       else -- unrecognised simple tag type - return unchanged for debugging
-         p_tag
-     end;
-end process_simple_tag;
-
-
-function process_section_tag (
-  p_tag  in varchar2
-, p_list in sys_refcursor
-) return clob is
-begin
-  return null; -- TODO
-end process_section_tag;
 
 
 function file2clob (
@@ -207,6 +140,34 @@ exception
 end clob2file;
 
 
+-- mustache template proceessing
+
+function process_simple_tag (
+  p_template in clob
+, p_tag in varchar2
+, p_val in varchar2
+) return clob is
+  l_return clob;
+begin
+  -- variable, replace with unescaped value
+  l_return := regexp_replace(p_template, '{{{'||p_tag||'}}', p_val);
+  -- comment, replace with nothing
+  l_return := regexp_replace(p_template, '{{!'||p_tag||'}}', null);
+    -- variable, replace with HTML escape value
+  l_return := regexp_replace(p_template, '{{'||p_tag||'}}', htf.escape_sc(p_val));
+  return l_return;
+end process_simple_tag;
+
+
+function process_section_tag (
+  p_tag  in varchar2
+, p_list in sys_refcursor
+) return clob is
+begin
+  return null; -- TODO
+end process_section_tag;
+
+
 procedure document (
   p_dir               in varchar2
 , p_template_filename in varchar2 default 'default.mustache'
@@ -215,7 +176,7 @@ procedure document (
 ) is
   l_schema varchar2(30) := p_schema;
   l_template clob;
-  
+
 begin
   -- defaults
   if l_schema is null then
@@ -226,15 +187,16 @@ begin
 
   -- fetch the template
   l_template := ddd.file2clob (p_dir, p_template_filename);
-  
+
   -- fetch simple variables
-  
+
   -- replace simple variables
-  l_template := clob_replace(l_template, '{{schema}}', l_schema);
-  l_template := clob_replace(l_template, '{{shortdate}}', to_char(sysdate, 'DD-MON-YYYY'));
-  l_template := clob_replace(l_template, '{{longdate}}', to_char(sysdate, 'Month dth, YYYY'));
-  l_template := clob_replace(l_template, '{{datetime}}', to_char(sysdate, 'DD Month YYYY HH24:MI:SS'));
-  
+  l_template := process_simple_tag(l_template, 'schema', l_schema);
+  l_template := process_simple_tag(l_template, 'shortdate', to_char(sysdate, 'DS'));
+  l_template := process_simple_tag(l_template, 'longdate', to_char(sysdate, 'DL'));
+  l_template := process_simple_tag(l_template, 'datetime', to_char(sysdate, 'DS TS'));
+
+  -- write the results
   ddd.clob2file (p_dir, p_document_filename, l_template);
 end document;
 
