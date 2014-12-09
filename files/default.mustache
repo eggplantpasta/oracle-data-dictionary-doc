@@ -45,6 +45,7 @@
             <li><a href="#data">Data</a></li>
             <li><a href="#code">Code</a></li>
           </ul>
+          <p class="navbar-text navbar-right"><a href="javascript:window.print()" class="navbar-link">Print</a></p>
         </div><!--/.nav-collapse -->
       </div>
     </div>
@@ -56,8 +57,8 @@
           <h1>Overview</h1>
           <p class="lead">Database documentation for Oracle schema {{schema}}.</p>
           <h2>Creation details</h2>
-          <p>This docuemntation was generated on {{datetime}}. The code used to generate this can be found at <a href="https://github.com/eggplantpasta/oracle-data-dictionary-doc">GitHub</a>.</p>
-          <p>Use the following procedure call to re-generate this document, logged onto the {{current_schema}} schema of the {{db_name}} database:</p>
+          <p>This docuemntation was generated on {{datetime}}. The code used to create this can be found at <a href="https://github.com/eggplantpasta/oracle-data-dictionary-doc">GitHub</a>.</p>
+          <p>The following procedure call was used to generate this document while logged onto the {{current_schema}} schema of the {{db_name}} database:</p>
           <pre>
           {{procedure}} (
             p_dir => '{{p_dir}}'
