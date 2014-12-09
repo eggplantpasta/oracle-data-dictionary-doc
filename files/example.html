@@ -8,7 +8,7 @@
     <meta name="author" content="">
     <link rel="shortcut icon" href="assets/favicon.ico">
 
-    <title>{{schema}} Schema Documentation</title>
+    <title>HR Schema Documentation</title>
     <!-- Refer to https://github.com/eggplantpasta/oracle-data-dictionary-doc for details on how to customise this example template. -->
 
     <!-- Bootstrap core CSS -->
@@ -37,7 +37,7 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="#">{{schema}} Schema</a>
+          <a class="navbar-brand" href="#">HR Schema</a>
         </div>
         <div class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
@@ -60,14 +60,14 @@
           <p class="lead">The Oracle Database Sample Schema, Human Resources.</p>
           <p>In the Human Resource (HR) records, each employee has an identification number, e-mail address, job identification code, salary, and manager. Some employees earn commissions in addition to their salary. The company also tracks information about jobs within the organization. Each job has an identification code, job title, and a minimum and maximum salary range for the job. Some employees have been with the company for a long time and have held different positions within the company. When an employee resigns, the duration the employee was working, the job identification number, and the department are recorded.</p>
           <h2>Creation details</h2>
-          <p>This example docuemntation was generated on {{datetime}}. The code used to create this can be found at <a href="https://github.com/eggplantpasta/oracle-data-dictionary-doc">GitHub</a>.</p>
-          <p>The following procedure call was used to generate this document while logged onto the {{current_schema}} schema of the {{db_name}} database:</p>
+          <p>This example docuemntation was generated on 9/12/2014 5:21:09 PM. The code used to create this can be found at <a href="https://github.com/eggplantpasta/oracle-data-dictionary-doc">GitHub</a>.</p>
+          <p>The following procedure call was used to generate this document while logged onto the DDD schema of the XE database:</p>
           <pre>
-          {{procedure}} (
-            p_dir => '{{p_dir}}'
-          , p_template_filename => '{{p_template_filename}}'
-          , p_document_filename => '{{p_document_filename}}'
-          , p_schema => '{{p_schema}}'
+          ddd.document (
+            p_dir => 'DDD_FILES'
+          , p_template_filename => 'hrexample.mustache'
+          , p_document_filename => 'example.html'
+          , p_schema => 'HR'
           );
           </pre>
         </section>

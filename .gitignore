@@ -2,6 +2,10 @@
 *.bad
 *.log
 
+# generated documentation
+files/*.html
+!files/example.html
+
 #https://github.com/github/gitignore/blob/master/Global/OSX.gitignore
 
 .DS_Store
