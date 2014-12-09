@@ -37,7 +37,7 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="#">HR Schema</a>
+          <a class="navbar-brand" href="#">{{schema}} Schema</a>
         </div>
         <div class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
@@ -55,15 +55,23 @@
         <section id="overview">
           <h1>Overview</h1>
           <p class="lead">Database documentation for Oracle schema {{schema}}.</p>
-          <p>This docuemntation was generated on {{longdate}} from from the oracle data dictionary via the package "ddd". The code for this package can be found at <a href="https://github.com/eggplantpasta/oracle-data-dictionary-doc">GitHub</a>.</p>
+          <h2>Creation details</h2>
+          <p>This docuemntation was generated on {{datetime}}. The code used to generate this can be found at <a href="https://github.com/eggplantpasta/oracle-data-dictionary-doc">GitHub</a>.</p>
+          <p>Use the following procedure call to re-generate this document, logged onto the {{current_schema}} schema of the {{db_name}} database:</p>
+          <pre>
+          {{procedure}} (
+            p_dir => '{{p_dir}}'
+          , p_template_filename => '{{p_template_filename}}'
+          , p_document_filename => '{{p_document_filename}}'
+          , p_schema => '{{p_schema}}'
+          );
+          </pre>
         </section>
         <section id="data">
-          {{{data-intro}}}
-          {{{data-objects}}}
+          <h1>Data Objects</h1>
         </section>
         <section id="code">
-          {{{code-intro}}}
-          {{{code-objects}}}
+          <h1>Code Objects</h1>
         </section>
       </div>
 

@@ -176,25 +176,31 @@ procedure document (
 ) is
   l_schema varchar2(30) := p_schema;
   l_template clob;
+  
+  -- simple variables
+  l_sys_context varchar2(256);
 
 begin
   -- defaults
-  if l_schema is null then
-    select sys_context ('USERENV', 'CURRENT_SCHEMA')
-    into l_schema
-    from dual;
-  end if;
+  l_schema := nvl(p_schema, sys_context ('USERENV', 'CURRENT_SCHEMA'));
 
   -- fetch the template
   l_template := ddd.file2clob (p_dir, p_template_filename);
-
-  -- fetch simple variables
 
   -- replace simple variables
   l_template := process_simple_tag(l_template, 'schema', l_schema);
   l_template := process_simple_tag(l_template, 'shortdate', to_char(sysdate, 'DS'));
   l_template := process_simple_tag(l_template, 'longdate', to_char(sysdate, 'DL'));
   l_template := process_simple_tag(l_template, 'datetime', to_char(sysdate, 'DS TS'));
+
+  l_template := process_simple_tag(l_template, 'procedure', 'ddd.document');
+  l_template := process_simple_tag(l_template, 'p_dir', p_dir);
+  l_template := process_simple_tag(l_template, 'p_template_filename', p_template_filename);
+  l_template := process_simple_tag(l_template, 'p_document_filename', p_document_filename);
+  l_template := process_simple_tag(l_template, 'p_schema', p_schema);
+  
+  l_template := process_simple_tag(l_template, 'db_name', sys_context ('USERENV', 'DB_NAME'));
+  l_template := process_simple_tag(l_template, 'current_schema', sys_context ('USERENV', 'CURRENT_SCHEMA'));
 
   -- write the results
   ddd.clob2file (p_dir, p_document_filename, l_template);
